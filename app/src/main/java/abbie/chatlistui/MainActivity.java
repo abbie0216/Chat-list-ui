@@ -1,5 +1,7 @@
 package abbie.chatlistui;
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -17,16 +19,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     RecyclerView list;
     TextView btnNewMsg;
+    TextView btnFriendLst;
     ChatAdapter adapter = new ChatAdapter();
     ArrayList<ChatItem> items = new ArrayList<>();
     int numNewMsg = 0;
     int numTemp = 1;
+    ObjectAnimator aniBtnShow, aniBtnHide;
 
     Handler handler = new Handler();
     Runnable task = new Runnable() {
         @Override
         public void run() {
-            handler.postDelayed(this, 1000 * getRandom(1, 5));
+            handler.postDelayed(this, 2000);
             if (items.size() == 99)
                 items.remove(0);
             ChatItem item = new ChatItem();
@@ -39,8 +43,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 list.scrollToPosition(items.size() - 1);
             } else {
                 Log.d("Abbie", "Get new msg. Not at bottom of list.");
-                btnNewMsg.setText((++numNewMsg) + " 則新訊息");
-                btnNewMsg.setVisibility(View.VISIBLE);
+                btnNewMsg.setText((++numNewMsg) + " new message.");
+                if(btnNewMsg.getVisibility()==View.INVISIBLE){
+                    aniBtnShow.start();
+                }
             }
         }
     };
@@ -65,14 +71,64 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Log.d("Abbie", "Not at bottom of list.");
                     } else {
                         Log.d("Abbie", "Already at bottom of list.");
-                        btnNewMsg.setVisibility(View.INVISIBLE);
+                        if(btnNewMsg.getVisibility()==View.VISIBLE){
+                            aniBtnHide.start();
+                        }
                         numNewMsg = 0;
                     }
                 }
             }
         });
+
         btnNewMsg = (TextView) findViewById(R.id.btn_new_msg);
         btnNewMsg.setOnClickListener(this);
+
+        btnFriendLst = (TextView) findViewById(R.id.btn_friend_list);
+        btnFriendLst.setOnClickListener(this);
+
+        aniBtnShow = ObjectAnimator.ofFloat(btnNewMsg, "alpha", 0, 1);
+        aniBtnShow.setDuration(500);
+        aniBtnShow.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                btnNewMsg.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                btnNewMsg.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+            }
+        });
+
+        aniBtnHide = ObjectAnimator.ofFloat(btnNewMsg, "alpha", 1, 0);
+        aniBtnHide.setDuration(500);
+        aniBtnHide.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                btnNewMsg.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+                btnNewMsg.setVisibility(View.INVISIBLE);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+            }
+        });
     }
 
     @Override
@@ -92,8 +148,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             case R.id.btn_new_msg:
                 list.scrollToPosition(items.size() - 1);
-                btnNewMsg.setVisibility(View.INVISIBLE);
+                if(btnNewMsg.getVisibility()==View.VISIBLE) {
+                    aniBtnHide.start();
+                }
                 numNewMsg = 0;
+                break;
+            case R.id.btn_friend_list:
+                new FriendLstDlg(getBaseContext());
                 break;
         }
     }
@@ -133,9 +194,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private class ChatItem {
         String title;
         String content;
-    }
-
-    private int getRandom(int min, int max) {
-        return (int) (Math.floor(Math.random() * (max - min + 1) + min));
     }
 }
