@@ -7,7 +7,6 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -21,7 +20,7 @@ import java.util.Collections;
  * Created by Abbie on 2017/3/24.
  */
 
-public class FriendLstDlg implements View.OnClickListener, OnStartDragListener{
+public class FriendLstDlg implements View.OnClickListener{
 
     PopupWindow window;
     View view;
@@ -32,7 +31,6 @@ public class FriendLstDlg implements View.OnClickListener, OnStartDragListener{
     RecyclerView list;
     FriendLstAdapter adapter = new FriendLstAdapter();
     ArrayList<FriendItem> items = new ArrayList<>();
-    OnStartDragListener dragStartListener = this;
     ItemTouchHelper itemTouchHelper;
 
     public FriendLstDlg(Context ctx) {
@@ -79,10 +77,6 @@ public class FriendLstDlg implements View.OnClickListener, OnStartDragListener{
         }
     }
 
-    @Override
-    public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
-    }
-
     public class FriendLstAdapter extends RecyclerView.Adapter<FriendLstAdapter.FriendLstViewHolder> implements ItemTouchHelperAdapter{
 
         @Override
@@ -94,15 +88,6 @@ public class FriendLstDlg implements View.OnClickListener, OnStartDragListener{
         public void onBindViewHolder(final FriendLstViewHolder holder, int position) {
             FriendItem item = items.get(position);
             holder.txtName.setText(item.name);
-            holder.txtName.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                        dragStartListener.onStartDrag(holder);
-                    }
-                    return false;
-                }
-            });
         }
 
         @Override
