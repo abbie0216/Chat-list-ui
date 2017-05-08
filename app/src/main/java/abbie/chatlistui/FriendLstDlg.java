@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
@@ -20,20 +21,26 @@ import java.util.Collections;
  * Created by Abbie on 2017/3/24.
  */
 
-public class FriendLstDlg implements View.OnClickListener{
+public class FriendLstDlg implements View.OnClickListener {
 
+    Context ctx;
+    DBHelper dbHelper;
     PopupWindow window;
     View view;
+    TextView tvTitle;
     TextView btnAdd;
     TextView btnClose;
-    int friendnum = 1;
+    EditText etAddFriend;
+    int friendnum;
 
     RecyclerView list;
     FriendLstAdapter adapter = new FriendLstAdapter();
-    ArrayList<FriendItem> items = new ArrayList<>();
+    ArrayList<FriendItem> items;
     ItemTouchHelper itemTouchHelper;
 
-    public FriendLstDlg(Context ctx) {
+    public FriendLstDlg(Context ctx, DBHelper dbHelper) {
+        this.ctx = ctx;
+        this.dbHelper = dbHelper;
         view = LayoutInflater.from(ctx).inflate(R.layout.dlg_friend_list, null);
         window = new PopupWindow(view, WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT, true);
         window.setOutsideTouchable(false);
@@ -45,19 +52,24 @@ public class FriendLstDlg implements View.OnClickListener{
         itemTouchHelper = new ItemTouchHelper(callback);
         itemTouchHelper.attachToRecyclerView(list);
 
+        tvTitle = (TextView) view.findViewById(R.id.tv_title);
         btnClose = (TextView) view.findViewById(R.id.btn_close);
         btnAdd = (TextView) view.findViewById(R.id.btn_add);
+        etAddFriend = (EditText) view.findViewById(R.id.et_add_friend);
         btnClose.setOnClickListener(this);
         btnAdd.setOnClickListener(this);
 
-        initData();
+        tvTitle.setText(SPHelper.getInstance().getUserName() + "'s friends");
+        refreshData();
         window.showAtLocation(view, Gravity.TOP, 0, 0);
     }
 
-    private void initData() {
-        Log.d("Abbie", "init friend data.");
-        for (int i = 0; i < 5; i++)
-            items.add(new FriendItem("Friend #" + (friendnum++)));
+    private void refreshData() {
+        Log.d("Abbie", "refresh friend data.");
+        if (items != null)
+            items.clear();
+        items = dbHelper.getAllFriends();
+        friendnum = items.size();
         adapter.notifyDataSetChanged();
     }
 
@@ -66,8 +78,11 @@ public class FriendLstDlg implements View.OnClickListener{
         switch (v.getId()) {
             case R.id.btn_add:
                 Log.d("Abbie", "btn_add clicked.");
-                items.add(new FriendItem("Friend #" + (friendnum++)));
-                adapter.notifyDataSetChanged();
+                if (!etAddFriend.getText().toString().trim().equals("")) {
+                    dbHelper.addFriend(etAddFriend.getText().toString(), friendnum + 1);
+                    etAddFriend.setText("");
+                    refreshData();
+                }
                 break;
             case R.id.btn_close:
                 Log.d("Abbie", "btn_close clicked.");
@@ -77,7 +92,7 @@ public class FriendLstDlg implements View.OnClickListener{
         }
     }
 
-    public class FriendLstAdapter extends RecyclerView.Adapter<FriendLstAdapter.FriendLstViewHolder> implements ItemTouchHelperAdapter{
+    public class FriendLstAdapter extends RecyclerView.Adapter<FriendLstAdapter.FriendLstViewHolder> implements ItemTouchHelperAdapter {
 
         @Override
         public FriendLstViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -87,7 +102,7 @@ public class FriendLstDlg implements View.OnClickListener{
         @Override
         public void onBindViewHolder(final FriendLstViewHolder holder, int position) {
             FriendItem item = items.get(position);
-            holder.txtName.setText(item.name);
+            holder.txtName.setText(item.getName() + " [id="+item.getId()+"]");
         }
 
         @Override
@@ -98,23 +113,24 @@ public class FriendLstDlg implements View.OnClickListener{
         @Override
         public boolean onItemMove(int fromPosition, int toPosition) {
             Collections.swap(items, fromPosition, toPosition);
-            notifyItemMoved(fromPosition,toPosition);
+            notifyItemMoved(fromPosition, toPosition);
             return true;
         }
 
         @Override
         public void onItemDismiss(int position) {
+            dbHelper.deleteFriend(items.get(position).getId());
             items.remove(position);
             notifyItemRemoved(position);
         }
 
-        class FriendLstViewHolder extends RecyclerView.ViewHolder implements ItemTouchHelperViewHolder{
+        class FriendLstViewHolder extends RecyclerView.ViewHolder implements ItemTouchHelperViewHolder {
 
             TextView txtName;
 
             public FriendLstViewHolder(View itemView) {
                 super(itemView);
-                txtName = (TextView) itemView.findViewById(R.id.txt_name);
+                txtName = (TextView) itemView.findViewById(R.id.tv_name);
             }
 
             @Override
@@ -125,14 +141,6 @@ public class FriendLstDlg implements View.OnClickListener{
             public void onItemClear() {
                 itemView.setBackgroundColor(0);
             }
-        }
-    }
-
-    class FriendItem {
-        String name;
-
-        FriendItem(String name) {
-            this.name = name;
         }
     }
 }

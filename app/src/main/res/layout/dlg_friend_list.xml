@@ -12,6 +12,7 @@
         android:orientation="vertical">
 
         <TextView
+            android:id="@+id/tv_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
@@ -54,6 +55,15 @@
                 android:text="+ ADD NEW FRIEND"
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="15dp" />
+            <EditText
+                android:id="@+id/et_add_friend"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginRight="10dp"
+                android:singleLine="true"
+                android:hint="Enter a name"
+                android:textColor="@color/white"
+                android:textSize="15dp"/>
         </LinearLayout>
     </LinearLayout>
     <TextView

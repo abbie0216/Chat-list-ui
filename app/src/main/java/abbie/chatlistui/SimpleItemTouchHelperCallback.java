@@ -3,6 +3,7 @@ package abbie.chatlistui;
 import android.graphics.Canvas;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
+import android.util.Log;
 
 /**
  * Created by Abbie on 2017/3/24.
@@ -73,6 +74,8 @@ public class SimpleItemTouchHelperCallback extends ItemTouchHelper.Callback {
                 ItemTouchHelperViewHolder itemViewHolder = (ItemTouchHelperViewHolder) viewHolder;
                 itemViewHolder.onItemSelected();
             }
+        }else{
+            Log.d("Abbie","onSelectedChanged [IDLE]");
         }
 
         super.onSelectedChanged(viewHolder, actionState);

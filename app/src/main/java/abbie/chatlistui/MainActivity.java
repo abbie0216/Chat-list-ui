@@ -13,6 +13,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.facebook.stetho.Stetho;
+
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -30,7 +32,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Runnable task = new Runnable() {
         @Override
         public void run() {
-            handler.postDelayed(this, 2000);
+            handler.postDelayed(this, 5000);
             if (items.size() == 99)
                 items.remove(0);
             ChatItem item = new ChatItem();
@@ -51,10 +53,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     };
 
+    DBHelper dbHelper;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        dbHelper = new DBHelper(this, "chatlist.db", null, 1);
+        SPHelper.init(this);
+        initStetho();
         initView();
     }
 
@@ -129,6 +136,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onAnimationRepeat(Animator animation) {
             }
         });
+
+        SPHelper.getInstance().putUserName("Abbie");
+    }
+
+    private void initStetho(){
+        // Create an InitializerBuilder
+        Stetho.InitializerBuilder initializerBuilder = Stetho.newInitializerBuilder(this);
+
+        // Enable Chrome DevTools
+        initializerBuilder.enableWebKitInspector(Stetho.defaultInspectorModulesProvider(this));
+
+        // Enable command line interface
+        initializerBuilder.enableDumpapp(Stetho.defaultDumperPluginsProvider(this));
+
+        // Use the InitializerBuilder to generate an Initializer
+        Stetho.Initializer initializer = initializerBuilder.build();
+
+        // Initialize Stetho with the Initializer
+        Stetho.initialize(initializer);
     }
 
     @Override
@@ -154,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 numNewMsg = 0;
                 break;
             case R.id.btn_friend_list:
-                new FriendLstDlg(getBaseContext());
+                new FriendLstDlg(getBaseContext(), dbHelper);
                 break;
         }
     }
@@ -185,8 +211,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             public ChatViewHolder(View itemView) {
                 super(itemView);
-                txtTitle = (TextView) itemView.findViewById(R.id.txt_title);
-                txtContent = (TextView) itemView.findViewById(R.id.txt_content);
+                txtTitle = (TextView) itemView.findViewById(R.id.tv_title);
+                txtContent = (TextView) itemView.findViewById(R.id.tv_content);
             }
         }
     }
