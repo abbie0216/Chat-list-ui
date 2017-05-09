@@ -19,17 +19,18 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    RecyclerView list;
-    TextView btnNewMsg;
-    TextView btnFriendLst;
-    ChatAdapter adapter = new ChatAdapter();
-    ArrayList<ChatItem> items = new ArrayList<>();
-    int numNewMsg = 0;
-    int numTemp = 1;
-    ObjectAnimator aniBtnShow, aniBtnHide;
+    private RecyclerView list;
+    private TextView btnNewMsg;
+    private TextView btnFriendLst;
+    private ChatAdapter adapter = new ChatAdapter();
+    private ArrayList<ChatItem> items = new ArrayList<>();
+    private int numNewMsg = 0;
+    private int numTemp = 1;
+    private ObjectAnimator aniBtnShow, aniBtnHide;
+    public static FriendLstDlg friendLstDlg;
 
-    Handler handler = new Handler();
-    Runnable task = new Runnable() {
+    private Handler handler = new Handler();
+    private Runnable task = new Runnable() {
         @Override
         public void run() {
             handler.postDelayed(this, 5000);
@@ -46,14 +47,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             } else {
                 Log.d("Abbie", "Get new msg. Not at bottom of list.");
                 btnNewMsg.setText((++numNewMsg) + " new message.");
-                if(btnNewMsg.getVisibility()==View.INVISIBLE){
+                if (btnNewMsg.getVisibility() == View.INVISIBLE) {
                     aniBtnShow.start();
                 }
             }
         }
     };
 
-    DBHelper dbHelper;
+    private DBHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +64,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         SPHelper.init(this);
         initStetho();
         initView();
+        friendLstDlg = new FriendLstDlg(getBaseContext(), dbHelper);
+
     }
 
     private void initView() {
@@ -78,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Log.d("Abbie", "Not at bottom of list.");
                     } else {
                         Log.d("Abbie", "Already at bottom of list.");
-                        if(btnNewMsg.getVisibility()==View.VISIBLE){
+                        if (btnNewMsg.getVisibility() == View.VISIBLE) {
                             aniBtnHide.start();
                         }
                         numNewMsg = 0;
@@ -140,21 +143,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         SPHelper.getInstance().putUserName("Abbie");
     }
 
-    private void initStetho(){
-        // Create an InitializerBuilder
-        Stetho.InitializerBuilder initializerBuilder = Stetho.newInitializerBuilder(this);
-
-        // Enable Chrome DevTools
-        initializerBuilder.enableWebKitInspector(Stetho.defaultInspectorModulesProvider(this));
-
-        // Enable command line interface
-        initializerBuilder.enableDumpapp(Stetho.defaultDumperPluginsProvider(this));
-
-        // Use the InitializerBuilder to generate an Initializer
-        Stetho.Initializer initializer = initializerBuilder.build();
-
-        // Initialize Stetho with the Initializer
-        Stetho.initialize(initializer);
+    private void initStetho() {
+        Stetho.initialize(Stetho.newInitializerBuilder(this)
+                        .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
+                        .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(this))
+                        .build());
     }
 
     @Override
@@ -174,13 +167,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             case R.id.btn_new_msg:
                 list.scrollToPosition(items.size() - 1);
-                if(btnNewMsg.getVisibility()==View.VISIBLE) {
+                if (btnNewMsg.getVisibility() == View.VISIBLE) {
                     aniBtnHide.start();
                 }
                 numNewMsg = 0;
                 break;
             case R.id.btn_friend_list:
-                new FriendLstDlg(getBaseContext(), dbHelper);
+                friendLstDlg.show();
                 break;
         }
     }

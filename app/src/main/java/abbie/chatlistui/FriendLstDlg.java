@@ -23,20 +23,19 @@ import java.util.Collections;
 
 public class FriendLstDlg implements View.OnClickListener {
 
-    Context ctx;
-    DBHelper dbHelper;
-    PopupWindow window;
-    View view;
-    TextView tvTitle;
-    TextView btnAdd;
-    TextView btnClose;
-    EditText etAddFriend;
-    int friendnum;
+    private Context ctx;
+    private DBHelper dbHelper;
+    private PopupWindow window;
+    private View view;
+    private TextView tvTitle;
+    private TextView btnAdd;
+    private TextView btnClose;
+    private EditText etAddFriend;
 
-    RecyclerView list;
-    FriendLstAdapter adapter = new FriendLstAdapter();
-    ArrayList<FriendItem> items;
-    ItemTouchHelper itemTouchHelper;
+    private RecyclerView list;
+    private FriendLstAdapter adapter = new FriendLstAdapter();
+    private ArrayList<FriendItem> items;
+    private ItemTouchHelper itemTouchHelper;
 
     public FriendLstDlg(Context ctx, DBHelper dbHelper) {
         this.ctx = ctx;
@@ -60,8 +59,6 @@ public class FriendLstDlg implements View.OnClickListener {
         btnAdd.setOnClickListener(this);
 
         tvTitle.setText(SPHelper.getInstance().getUserName() + "'s friends");
-        refreshData();
-        window.showAtLocation(view, Gravity.TOP, 0, 0);
     }
 
     private void refreshData() {
@@ -69,7 +66,6 @@ public class FriendLstDlg implements View.OnClickListener {
         if (items != null)
             items.clear();
         items = dbHelper.getAllFriends();
-        friendnum = items.size();
         adapter.notifyDataSetChanged();
     }
 
@@ -79,7 +75,8 @@ public class FriendLstDlg implements View.OnClickListener {
             case R.id.btn_add:
                 Log.d("Abbie", "btn_add clicked.");
                 if (!etAddFriend.getText().toString().trim().equals("")) {
-                    dbHelper.addFriend(etAddFriend.getText().toString(), friendnum + 1);
+                    int lastItemOrder = items.get(items.size() - 1).getOrder();
+                    dbHelper.addFriend(etAddFriend.getText().toString(), lastItemOrder + 1);
                     etAddFriend.setText("");
                     refreshData();
                 }
@@ -92,6 +89,11 @@ public class FriendLstDlg implements View.OnClickListener {
         }
     }
 
+    public void show() {
+        refreshData();
+        window.showAtLocation(view, Gravity.TOP, 0, 0);
+    }
+
     public class FriendLstAdapter extends RecyclerView.Adapter<FriendLstAdapter.FriendLstViewHolder> implements ItemTouchHelperAdapter {
 
         @Override
@@ -102,7 +104,7 @@ public class FriendLstDlg implements View.OnClickListener {
         @Override
         public void onBindViewHolder(final FriendLstViewHolder holder, int position) {
             FriendItem item = items.get(position);
-            holder.txtName.setText(item.getName() + " [id="+item.getId()+"]");
+            holder.txtName.setText(item.getName() + "[id=" + item.getId() + ",order=" + item.getOrder() + "]");
         }
 
         @Override
@@ -112,6 +114,11 @@ public class FriendLstDlg implements View.OnClickListener {
 
         @Override
         public boolean onItemMove(int fromPosition, int toPosition) {
+            int orderA = items.get(fromPosition).getOrder();
+            int orderB = items.get(toPosition).getOrder();
+            dbHelper.swapOrder(items.get(fromPosition), items.get(toPosition));
+            items.get(fromPosition).setOrder(orderB);
+            items.get(toPosition).setOrder(orderA);
             Collections.swap(items, fromPosition, toPosition);
             notifyItemMoved(fromPosition, toPosition);
             return true;
