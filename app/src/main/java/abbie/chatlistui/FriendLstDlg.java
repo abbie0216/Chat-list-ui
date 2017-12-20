@@ -75,8 +75,12 @@ public class FriendLstDlg implements View.OnClickListener {
             case R.id.btn_add:
                 Log.d("Abbie", "btn_add clicked.");
                 if (!etAddFriend.getText().toString().trim().equals("")) {
-                    int lastItemOrder = items.get(items.size() - 1).getOrder();
-                    dbHelper.addFriend(etAddFriend.getText().toString(), lastItemOrder + 1);
+                    if(items.size()==0){
+                        dbHelper.addFriend(etAddFriend.getText().toString(), 0);
+                    }else {
+                        int lastItemOrder = items.get(items.size() - 1).getOrder();
+                        dbHelper.addFriend(etAddFriend.getText().toString(), lastItemOrder + 1);
+                    }
                     etAddFriend.setText("");
                     refreshData();
                 }
@@ -104,7 +108,7 @@ public class FriendLstDlg implements View.OnClickListener {
         @Override
         public void onBindViewHolder(final FriendLstViewHolder holder, int position) {
             FriendItem item = items.get(position);
-            holder.txtName.setText(item.getName() + "[id=" + item.getId() + ",order=" + item.getOrder() + "]");
+            holder.txtName.setText(item.getName() /*+ "[id=" + item.getId() + ",order=" + item.getOrder() + "]"*/);
         }
 
         @Override
